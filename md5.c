@@ -1,23 +1,17 @@
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "bases.c"
 #include "endianness.c"
 
-// #define STRING "They are deterministic"
-// #define STRING "Hello, world!"
-#define STRING "test"
 #define INPUT_TXT_SIZE 56
 #define INPUT_LEN_SIZE 8
 #define BLOCK_SIZE (INPUT_TXT_SIZE + INPUT_LEN_SIZE)
 #define WORD_COUNT 16
 #define WORD_SIZE (BLOCK_SIZE / WORD_COUNT)
 #define OP_COUNT 64
-
-// #define A 0x01234567
-// #define B 0x89abcdef
-// #define C 0xfedcba98
-// #define D 0x76543210
 
 #define A 0x67452301
 #define B 0xefcdab89
@@ -41,12 +35,12 @@ static uint32_t K[OP_COUNT];
 
 void initialize_k(uint32_t *arr) {
   for (int i = 0; i < OP_COUNT; ++i) {
-    arr[i] = (uint32_t)floor(fabs(sin((double)i + 1.0)) * pow(2.0, 32.0));
+    arr[i] = (uint32_t)(fabs(sin((double)i + 1.0)) * pow(2.0, 32.0));
   }
 }
 
-int main() {
-  const size_t str_len = strlen(STRING);
+char *calculate_md5(const char *str) {
+  const size_t str_len = strlen(str);
 
   initialize_k(K);
 
@@ -56,7 +50,7 @@ int main() {
   }
 
   uint8_t block[BLOCK_SIZE] = {0};
-  memcpy(block, STRING, str_len);
+  memcpy(block, str, str_len);
 
   // append bit 1
   block[str_len] = 0x80;
@@ -116,14 +110,10 @@ int main() {
   uint32_t final_md5[] = {reverse_endianness(R[0]), reverse_endianness(R[1]),
                           reverse_endianness(R[2]), reverse_endianness(R[3])};
 
-  printf("calculated md5: %.8x%.8x%.8x%.8x\n", final_md5[0], final_md5[1],
-         final_md5[2], final_md5[3]);
+  char *result = malloc(33 * sizeof(char));
 
-  // for (int i = 0; i < BLOCK_SIZE; ++i) {
-  //   // char *bin_chr = int_to_bin(block[i]);
-  //   // pad_to_byte(bin_chr);
-  //   printf("0x%.2x\n", K[i]);
-  //   // free(bin_chr);
-  // }
-  // printf("\n");
+  snprintf(result, 33, "%.8x%.8x%.8x%.8x", final_md5[0], final_md5[1],
+           final_md5[2], final_md5[3]);
+
+  return result;
 }
